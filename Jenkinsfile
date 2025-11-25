@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhubCreds') // À créer dans Jenkins
+        DOCKERHUB_CREDENTIALS = credentials('dockerhubCreds')
         IMAGE_NAME = "rayenkorbi/student-management"
     }
 
@@ -16,28 +16,38 @@ pipeline {
 
         stage('Build JAR') {
             steps {
-                echo "Making mvnw executable..."
                 sh 'chmod +x mvnw'
-
-                echo "Building JAR..."
                 sh './mvnw clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker Image..."
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                echo "Building Docker Image (linux/amd64)..."
+                sh """
+                   docker build \
+                   --platform=linux/amd64 \
+                   -t ${IMAGE_NAME}:latest .
+                """
             }
         }
 
         stage('Docker Login & Push') {
             steps {
-                echo "Logging to Docker Hub..."
-                sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                echo "Logging into Docker Hub..."
+                sh """
+                   echo ${DOCKERHUB_CREDENTIALS_PSW} | \
+                   docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                """
 
-                echo "Pushing image..."
-                sh "docker push ${IMAGE_NAME}:latest"
+                echo "Pushing image to Docker Hub..."
+                sh """
+                   for i in 1 2 3; do
+                       docker push ${IMAGE_NAME}:latest && break
+                       echo "Push failed... retrying in 5 seconds (attempt \$i)"
+                       sleep 5
+                   done
+                """
             }
         }
 
@@ -50,10 +60,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline succeeded! 🎉"
+            echo "🎉 Pipeline succeeded!"
         }
         failure {
-            echo "Pipeline failed ❌"
+            echo "❌ Pipeline failed!"
         }
     }
 }
