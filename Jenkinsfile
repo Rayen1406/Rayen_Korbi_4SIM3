@@ -11,14 +11,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building the project..."
-                bat 'mvnw.cmd clean package -DskipTests'
+                sh './mvnw clean package -DskipTests'
             }
         }
 
         stage('Run Tests') {
             steps {
                 echo "Running tests (won’t fail pipeline)..."
-                bat 'mvnw.cmd test || exit /b 0'
+                sh './mvnw test || true'
             }
         }
 
