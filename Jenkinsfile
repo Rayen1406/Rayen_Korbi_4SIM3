@@ -11,13 +11,16 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building the project..."
+
+                sh 'chmod +x mvnw'    // ← FIX
+
                 sh './mvnw clean package -DskipTests'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo "Running tests (won’t fail pipeline)..."
+                echo "Running tests…"
                 sh './mvnw test || true'
             }
         }
@@ -37,11 +40,7 @@ pipeline {
     }
 
     post {
-        success {
-            echo "Pipeline completed successfully!"
-        }
-        failure {
-            echo "Pipeline failed."
-        }
+        success { echo "Pipeline completed successfully!" }
+        failure { echo "Pipeline failed." }
     }
 }
