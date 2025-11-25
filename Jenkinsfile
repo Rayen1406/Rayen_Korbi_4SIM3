@@ -11,23 +11,22 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building the project..."
-                sh './mvnw clean package -DskipTests'  // skip tests
+                bat 'mvnw.cmd clean package -DskipTests'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo "Running tests (won't fail pipeline)..."
-                sh './mvnw test || true'
+                echo "Running tests (won’t fail pipeline)..."
+                bat 'mvnw.cmd test || exit /b 0'
             }
         }
 
-stage('Run Application') {
-    steps {
-        echo "Skipping Run Application in Jenkins"
-    }
-}
-
+        stage('Run Application') {
+            steps {
+                echo "Skipping Run Application in Jenkins"
+            }
+        }
 
         stage('Archive Artifact') {
             steps {
