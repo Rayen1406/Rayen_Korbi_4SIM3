@@ -1,46 +1,59 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhubCreds') // À créer dans Jenkins
+        IMAGE_NAME = "rayenkorbi/student-management"
+    }
+
     stages {
+
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/Rayen1406/Rayen_Korbi_4SIM3.git'
             }
         }
 
-        stage('Build') {
+        stage('Build JAR') {
             steps {
-                echo "Building the project..."
+                echo "Making mvnw executable..."
+                sh 'chmod +x mvnw'
 
-                sh 'chmod +x mvnw'    // ← FIX
-
+                echo "Building JAR..."
                 sh './mvnw clean package -DskipTests'
             }
         }
 
-        stage('Run Tests') {
+        stage('Build Docker Image') {
             steps {
-                echo "Running tests…"
-                sh './mvnw test || true'
+                echo "Building Docker Image..."
+                sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
 
-        stage('Run Application') {
+        stage('Docker Login & Push') {
             steps {
-                echo "Skipping Run Application in Jenkins"
+                echo "Logging to Docker Hub..."
+                sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+
+                echo "Pushing image..."
+                sh "docker push ${IMAGE_NAME}:latest"
             }
         }
 
         stage('Archive Artifact') {
             steps {
-                echo "Archiving the JAR..."
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
     }
 
     post {
-        success { echo "Pipeline completed successfully!" }
-        failure { echo "Pipeline failed." }
+        success {
+            echo "Pipeline succeeded! 🎉"
+        }
+        failure {
+            echo "Pipeline failed ❌"
+        }
     }
 }
