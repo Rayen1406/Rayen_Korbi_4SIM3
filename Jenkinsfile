@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Rayen1406/Rayen_Korbi_4SIM3/Rayen_Korbi_4SIM3.git'
+                git branch: 'main', url: 'https://github.com/Rayen1406/Rayen_Korbi_4SIM3.git'
             }
         }
 
